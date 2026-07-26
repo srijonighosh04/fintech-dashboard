@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Bank {
+  id              String    @id @default(uuid())
+  userId          String    // Appwrite User $id reference
+  accessToken     String    // Encrypted Plaid Access Token
+  itemId          String    @unique // Plaid Item ID
+  institutionId   String
+  institutionName String
+  status          String    @default("CONNECTED") // CONNECTED, DISCONNECTED, REAUTH_REQUIRED
+  accounts        Account[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Account {
+  id               String   @id // Plaid Account ID
+  bankId           String
+  bank             Bank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  name             String
+  nickname         String?
+  mask             String
+  officialName     String?
+  type             String   // checking, savings, credit, investment
+  subtype          String?
+  balanceCurrent   Float
+  balanceAvailable Float?
+  balanceLimit     Float?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([bankId])
+}
