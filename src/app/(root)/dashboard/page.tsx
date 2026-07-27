@@ -4,12 +4,14 @@ import { getCurrentUser } from '@/features/auth/actions/authActions';
 import { getConnectedAccountsAction } from '@/features/accounts/actions/accountActions';
 import { PlaidLinkButton } from '@/features/plaid/components/PlaidLinkButton';
 import { AccountGrid } from '@/features/accounts/components/AccountGrid';
-import { AnalyticsChartWrapper } from '@/features/dashboard/components/AnalyticsChartWrapper';
+import { FinancialMetrics } from '@/features/dashboard/components/FinancialMetrics';
+import { QuickActions } from '@/features/dashboard/components/QuickActions';
+import { FinancialHealthWidget } from '@/features/dashboard/components/FinancialHealthWidget';
+import { DashboardAnalytics } from '@/features/dashboard/components/DashboardAnalytics';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency, formatDate } from '@/utils/format';
 import { Transaction } from '@/types';
-
 
 // Mock Transactions data for visual completeness
 const mockTransactions: Transaction[] = [
@@ -26,6 +28,27 @@ export default async function DashboardPage() {
 
   // Retrieve linked banks and accounts from PostgreSQL
   const banks = await getConnectedAccountsAction(user.$id);
+
+  // Compute metrics from connected accounts
+  let totalBalance = 0;
+  let netWorth = 0;
+
+  banks.forEach((bank) => {
+    bank.accounts.forEach((acc) => {
+      const balance = acc.balanceCurrent;
+      if (acc.type === 'credit') {
+        netWorth -= balance; // subtract debt
+      } else {
+        totalBalance += balance; // add assets
+        netWorth += balance;
+      }
+    });
+  });
+
+  // Default mock values if no accounts are connected to ensure beautiful layout states
+  const showMockDetails = banks.length === 0;
+  const computedTotal = showMockDetails ? 83650.75 : totalBalance;
+  const computedNetWorth = showMockDetails ? 75120.55 : netWorth;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -49,76 +72,86 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* Accounts & Bank connections */}
-      {banks.length > 0 ? (
-        <>
-          <AccountGrid banks={banks} userId={user.$id} />
+      {/* 1. Main Aggregate Metric Cards */}
+      <FinancialMetrics netWorth={computedNetWorth} totalBalance={computedTotal} />
 
-          {/* Analytics Chart */}
-          <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
-            <div className="lg:col-span-4">
-              <AnalyticsChartWrapper />
-            </div>
-          </div>
+      {/* 2. Actions & Health score Grid (Visible always to offer initial interactivity) */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          <QuickActions userId={user.$id} />
+        </div>
+        <div className="lg:col-span-1">
+          <FinancialHealthWidget />
+        </div>
+      </div>
 
-          {/* Transactions Section */}
-          <Card className="border-border/60 bg-card/60 backdrop-blur-md shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-bold tracking-tight">Recent Transactions</CardTitle>
-                <p className="text-xs text-muted-foreground">Detailed history of recent ledger actions.</p>
-              </div>
-              <Button variant="ghost" size="sm" className="text-xs font-semibold hover:underline">
-                View All
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead>
-                    <tr className="border-b border-border/40 text-muted-foreground font-medium text-xs uppercase tracking-wider">
-                      <th className="py-3 px-4">Merchant / Ledger</th>
-                      <th className="py-3 px-4">Category</th>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/20">
-                    {mockTransactions.map((tx) => {
-                      const isIncome = tx.type === 'income';
-                      const isPending = tx.status === 'pending';
+      {/* 3. Recharts Analytics Widgets */}
+      <DashboardAnalytics />
 
-                      return (
-                        <tr key={tx.id} className="hover:bg-muted/10 transition-colors">
-                          <td className="py-3.5 px-4 font-semibold text-foreground flex items-center gap-2.5">
-                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isIncome ? 'bg-cyan-500/10 text-cyan-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                              {isIncome ? <ArrowDownLeft className="h-4.5 w-4.5" /> : <ArrowUpRight className="h-4.5 w-4.5" />}
-                            </div>
-                            {tx.merchant}
-                          </td>
-                          <td className="py-3.5 px-4 text-muted-foreground">{tx.category}</td>
-                          <td className="py-3.5 px-4 text-muted-foreground">{formatDate(tx.date)}</td>
-                          <td className="py-3.5 px-4">
-                            <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold border ${isPending ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
-                              {tx.status}
-                            </span>
-                          </td>
-                          <td className={`py-3.5 px-4 text-right font-bold ${isIncome ? 'text-cyan-500' : 'text-foreground'}`}>
-                            {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </>
-      ) : (
-        /* Render empty state with connection trigger if no accounts are unlinked */
+      {/* 4. Bank connections and specific account cards */}
+      <div id="connected-accounts-section" className="space-y-4">
+        <div className="border-b border-border/20 pb-2">
+          <h3 className="text-xl font-bold tracking-tight">Connected Accounts</h3>
+          <p className="text-sm text-muted-foreground">Manage your credentials, nicknaming, and direct sync.</p>
+        </div>
         <AccountGrid banks={banks} userId={user.$id} />
+      </div>
+
+      {/* 5. Ledger list (Rendered if accounts exist to give visual completion) */}
+      {banks.length > 0 && (
+        <Card className="border-border/60 bg-card/60 backdrop-blur-md shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-bold tracking-tight">Recent Transactions</CardTitle>
+              <p className="text-xs text-muted-foreground">Detailed history of recent ledger actions.</p>
+            </div>
+            <Button variant="ghost" size="sm" className="text-xs font-semibold hover:underline">
+              View All
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead>
+                  <tr className="border-b border-border/40 text-muted-foreground font-medium text-xs uppercase tracking-wider">
+                    <th className="py-3 px-4">Merchant / Ledger</th>
+                    <th className="py-3 px-4">Category</th>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/20">
+                  {mockTransactions.map((tx) => {
+                    const isIncome = tx.type === 'income';
+                    const isPending = tx.status === 'pending';
+
+                    return (
+                      <tr key={tx.id} className="hover:bg-muted/10 transition-colors">
+                        <td className="py-3.5 px-4 font-semibold text-foreground flex items-center gap-2.5">
+                          <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${isIncome ? 'bg-cyan-500/10 text-cyan-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                            {isIncome ? <ArrowDownLeft className="h-4.5 w-4.5" /> : <ArrowUpRight className="h-4.5 w-4.5" />}
+                          </div>
+                          {tx.merchant}
+                        </td>
+                        <td className="py-3.5 px-4 text-muted-foreground">{tx.category}</td>
+                        <td className="py-3.5 px-4 text-muted-foreground">{formatDate(tx.date)}</td>
+                        <td className="py-3.5 px-4">
+                          <span className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold border ${isPending ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}`}>
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td className={`py-3.5 px-4 text-right font-bold ${isIncome ? 'text-cyan-500' : 'text-foreground'}`}>
+                          {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
