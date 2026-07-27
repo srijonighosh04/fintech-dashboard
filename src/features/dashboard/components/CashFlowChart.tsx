@@ -66,7 +66,7 @@ export function CashFlowChart() {
                 tickFormatter={(value) => `$${value}`}
               />
               <Tooltip
-                formatter={(value: number) => [formatCurrency(value)]}
+                formatter={(value: any) => [formatCurrency(Number(value))]}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border))',
@@ -79,7 +79,7 @@ export function CashFlowChart() {
                 height={36}
                 iconType="circle"
                 iconSize={8}
-                className="text-xs"
+                wrapperStyle={{ fontSize: '12px' }}
               />
               <Area
                 type="monotone"

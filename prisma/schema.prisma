@@ -26,20 +26,38 @@ model Bank {
 }
 
 model Account {
-  id               String   @id // Plaid Account ID
+  id               String        @id // Plaid Account ID
   bankId           String
-  bank             Bank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  bank             Bank          @relation(fields: [bankId], references: [id], onDelete: Cascade)
   name             String
   nickname         String?
   mask             String
   officialName     String?
-  type             String   // checking, savings, credit, investment
+  type             String        // checking, savings, credit, investment
   subtype          String?
   balanceCurrent   Float
   balanceAvailable Float?
   balanceLimit     Float?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  transactions     Transaction[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([bankId])
+}
+
+model Transaction {
+  id           String   @id // Plaid Transaction ID
+  accountId    String
+  account      Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  amount       Float    // Negative = Income/Deposit, Positive = Expense/Withdrawal (Plaid default)
+  date         DateTime
+  name         String   // Transaction Description / Merchant
+  merchantName String?  // Plaid Merchant Name (if resolved)
+  category     String   // Joined comma-separated primary categories
+  status       String   // pending, completed, failed, refunded
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([accountId])
+  @@index([date])
 }

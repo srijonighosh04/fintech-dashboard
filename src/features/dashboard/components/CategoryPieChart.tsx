@@ -55,7 +55,7 @@ export function CategoryPieChart() {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number) => [formatCurrency(value), 'Spent']}
+                formatter={(value: any) => [formatCurrency(Number(value)), 'Spent']}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border))',
@@ -68,7 +68,7 @@ export function CategoryPieChart() {
                 height={36}
                 iconType="circle"
                 iconSize={8}
-                className="text-[11px]"
+                wrapperStyle={{ fontSize: '11px' }}
               />
             </PieChart>
           </ResponsiveContainer>

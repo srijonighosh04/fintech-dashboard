@@ -61,7 +61,7 @@ export function MonthlySpendingChart() {
                 tickFormatter={(value) => `$${value}`}
               />
               <Tooltip
-                formatter={(value: number) => [formatCurrency(value), 'Weekly Spend']}
+                formatter={(value: any) => [formatCurrency(Number(value)), 'Weekly Spend']}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border))',

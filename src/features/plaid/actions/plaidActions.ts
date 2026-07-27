@@ -4,6 +4,7 @@ import { Products, CountryCode } from 'plaid';
 import { plaidClient } from '@/lib/plaid';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { syncPlaidTransactionsAction } from '@/features/transactions/actions/transactionActions';
 
 export interface ActionResponse<T = unknown> {
   success: boolean;
@@ -72,9 +73,9 @@ export async function exchangePublicTokenAction(
     const plaidAccounts = balanceResponse.data.accounts;
 
     // 3. Save Bank and Accounts to PostgreSQL in a transaction
-    await prisma.$transaction(async (tx) => {
+    const bank = await prisma.$transaction(async (tx) => {
       // Create the Bank node
-      const bank = await tx.bank.create({
+      const bankRecord = await tx.bank.create({
         data: {
           userId,
           accessToken,
@@ -99,7 +100,7 @@ export async function exchangePublicTokenAction(
 
         return {
           id: acc.account_id,
-          bankId: bank.id,
+          bankId: bankRecord.id,
           name: acc.name,
           officialName: acc.official_name || null,
           mask: acc.mask || '0000',
@@ -114,7 +115,16 @@ export async function exchangePublicTokenAction(
       await tx.account.createMany({
         data: accountData,
       });
+
+      return bankRecord;
     });
+
+    // 4. Synchronously sync transaction data
+    try {
+      await syncPlaidTransactionsAction(bank.id);
+    } catch (syncErr) {
+      console.error('Initial transaction sync failed:', syncErr);
+    }
 
     revalidatePath('/dashboard');
     return { success: true };
@@ -173,6 +183,13 @@ export async function refreshBankBalancesAction(bankId: string): Promise<ActionR
       where: { id: bankId },
       data: { status: 'CONNECTED' },
     });
+
+    // 4. Synchronously sync fresh transactions on manual refresh
+    try {
+      await syncPlaidTransactionsAction(bankId);
+    } catch (syncErr) {
+      console.error('Refresh transaction sync failed:', syncErr);
+    }
 
     revalidatePath('/dashboard');
     return { success: true };
