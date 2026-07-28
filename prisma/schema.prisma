@@ -61,3 +61,37 @@ model Transaction {
   @@index([accountId])
   @@index([date])
 }
+
+model Recipient {
+  id            String     @id @default(uuid())
+  userId        String     // Owner (Appwrite ID)
+  name          String
+  email         String
+  routingNumber String
+  accountNumber String
+  isFavorite    Boolean    @default(false)
+  transfers     Transfer[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model Transfer {
+  id                 String     @id @default(uuid())
+  userId             String     // Sender (Appwrite ID)
+  amount             Float
+  type               String     // INTERNAL (local accounts), EXTERNAL (to recipient)
+  senderAccountId    String     // Source Account ID
+  recipientAccountId String?    // For internal transfers: Destination Account ID
+  recipientId        String?    // For external transfers: Destination Recipient ID
+  recipient          Recipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+  status             String     // PENDING, COMPLETED, FAILED
+  scheduledDate      DateTime?  // Optional for scheduled transactions
+  idempotencyKey     String     @unique // Unique submission lock
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([idempotencyKey])
+}

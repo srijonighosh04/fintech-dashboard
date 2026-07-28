@@ -61,7 +61,10 @@ export function MonthlySpendingChart() {
                 tickFormatter={(value) => `$${value}`}
               />
               <Tooltip
-                formatter={(value: any) => [formatCurrency(Number(value)), 'Weekly Spend']}
+                formatter={
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (value: any) => [formatCurrency(Number(value)), 'Weekly Spend']
+                }
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border))',

@@ -55,7 +55,10 @@ export function CategoryPieChart() {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: any) => [formatCurrency(Number(value)), 'Spent']}
+                formatter={
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (value: any) => [formatCurrency(Number(value)), 'Spent']
+                }
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border))',

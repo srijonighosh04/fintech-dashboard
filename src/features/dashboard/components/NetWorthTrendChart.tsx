@@ -55,7 +55,10 @@ export function NetWorthTrendChart() {
                 tickFormatter={(value) => `$${value / 1000}k`}
               />
               <Tooltip
-                formatter={(value: any) => [formatCurrency(Number(value)), 'Net Worth']}
+                formatter={
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (value: any) => [formatCurrency(Number(value)), 'Net Worth']
+                }
                 contentStyle={{
                   backgroundColor: 'hsl(var(--card))',
                   borderColor: 'hsl(var(--border))',
