@@ -6,6 +6,7 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+// Next 16 middleware Proxy configuration details
 datasource db {
   provider = "postgresql"
 }
@@ -119,6 +120,35 @@ model SavingsGoal {
   targetDate    DateTime
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model AiSummary {
+  id                     String   @id @default(uuid())
+  userId                 String   // Appwrite User ID
+  month                  Int      // 1-12
+  year                   Int
+  spendingSummary        String
+  incomeSummary          String
+  expenseBreakdown       String
+  savingsRecommendations String
+  budgetSuggestions      String
+  financialHealthScore   Int      // 0-100
+  healthScoreExplanation String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@unique([userId, month, year])
+  @@index([userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String   // Appwrite User ID
+  role      String   // 'user' | 'assistant'
+  content   String
+  createdAt DateTime @default(now())
 
   @@index([userId])
 }
