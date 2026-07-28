@@ -95,3 +95,30 @@ model Transfer {
   @@index([userId])
   @@index([idempotencyKey])
 }
+
+model Budget {
+  id        String   @id @default(uuid())
+  userId    String   // Appwrite User ID
+  category  String   // e.g., 'Food & Dining', 'Rent & Housing', etc.
+  limit     Float    // Maximum spending limit
+  month     Int      // 1-12
+  year      Int      // e.g., 2026
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, category, month, year])
+  @@index([userId])
+}
+
+model SavingsGoal {
+  id            String   @id @default(uuid())
+  userId        String   // Appwrite User ID
+  name          String   // e.g., 'Tesla Model Y', 'Emergency Fund'
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  targetDate    DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
