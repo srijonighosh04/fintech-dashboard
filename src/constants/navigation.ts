@@ -1,7 +1,7 @@
 export interface NavItem {
   title: string;
   href: string;
-  iconName: 'LayoutDashboard' | 'CreditCard' | 'ArrowLeftRight' | 'History' | 'Settings' | 'Wallet' | 'BrainCircuit';
+  iconName: 'LayoutDashboard' | 'CreditCard' | 'ArrowLeftRight' | 'History' | 'Settings' | 'Wallet' | 'BrainCircuit' | 'Cpu';
 }
 
 export const SIDEBAR_NAV_ITEMS: NavItem[] = [
@@ -34,6 +34,11 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
     title: 'AI Assistant',
     href: '/assistant', // New AI financial assistant route page
     iconName: 'BrainCircuit',
+  },
+  {
+    title: 'Automation',
+    href: '/automation', // New automation controls & scanner route page
+    iconName: 'Cpu',
   },
   {
     title: 'Settings',

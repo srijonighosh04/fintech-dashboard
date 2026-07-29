@@ -18,6 +18,7 @@ import {
 
 interface MobileNavProps {
   user?: {
+    $id?: string;
     name: string;
     email: string;
   } | null;

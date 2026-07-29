@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, User } from 'lucide-react';
 import { MobileNav } from './MobileNav';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { Input } from '@/components/ui/input';
@@ -15,21 +15,41 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { logoutUser } from '@/features/auth/actions/authActions';
+import { NotificationCenter, NotificationRecord } from '@/features/automation/components/NotificationCenter';
+import { getNotificationsAction } from '@/features/automation/actions/automationActions';
 
 interface TopNavProps {
   user?: {
+    $id: string;
     name: string;
     email: string;
   } | null;
 }
 
 export function TopNav({ user }: TopNavProps) {
+  const [notifications, setNotifications] = useState<NotificationRecord[]>([]);
+
+  useEffect(() => {
+    if (!user || !user.$id) return;
+
+    const fetchNotifications = async () => {
+      const data = await getNotificationsAction(user.$id);
+      setNotifications(data as NotificationRecord[]);
+    };
+
+    fetchNotifications();
+
+    // Poll for notifications updates every 8 seconds
+    const interval = setInterval(fetchNotifications, 8000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   const handleLogout = async () => {
     await logoutUser();
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-background/60 px-4 backdrop-blur-md md:px-8">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-background/60 px-4 backdrop-blur-md md:px-8 shrink-0">
       {/* Left side: Mobile navigation toggle and Search bar */}
       <div className="flex items-center gap-4 flex-1 max-w-md">
         <MobileNav user={user} />
@@ -42,18 +62,17 @@ export function TopNav({ user }: TopNavProps) {
         </div>
       </div>
 
-      {/* Right side: Utilities (Notification, Theme, User Profile) */}
+      {/* Right side: Utilities (NotificationCenter, ThemeToggle, User Profile) */}
       <div className="flex items-center gap-3">
         {/* Search button for mobile only */}
         <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground">
           <Search className="h-5 w-5" />
         </Button>
 
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground">
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-cyan-500 ring-2 ring-background animate-pulse" />
-        </Button>
+        {/* Dynamic Notification Center Dropdown */}
+        {user && user.$id && (
+          <NotificationCenter userId={user.$id} initialNotifications={notifications} />
+        )}
 
         {/* Theme Toggler */}
         <ThemeToggle />
@@ -65,13 +84,13 @@ export function TopNav({ user }: TopNavProps) {
               render={
                 <Button
                   variant="ghost"
-                  className="relative h-9 w-9 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 font-semibold text-white shadow-md"
-                />
+                  className="relative h-9 w-9 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 font-semibold text-white shadow-md flex items-center justify-center"
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </Button>
               }
-            >
-              {user.name.charAt(0).toUpperCase()}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
+            />
+            <DropdownMenuContent className="w-56 bg-card/95 backdrop-blur-md border-border/60" align="end">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{user.name}</p>

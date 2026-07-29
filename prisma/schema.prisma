@@ -152,3 +152,57 @@ model ChatMessage {
 
   @@index([userId])
 }
+
+model Subscription {
+  id              String   @id @default(uuid())
+  userId          String   // Owner (Appwrite ID)
+  name            String   // Merchant / Subscription Name
+  amount          Float
+  frequency       String   // 'monthly' | 'annually'
+  category        String
+  nextPaymentDate DateTime
+  status          String   @default("ACTIVE") // ACTIVE | INACTIVE
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Bill {
+  id        String   @id @default(uuid())
+  userId    String   // Owner (Appwrite ID)
+  name      String   // Billing Merchant Name
+  amount    Float
+  dueDate   DateTime
+  status    String   @default("UNPAID") // UNPAID | PAID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   // Target User
+  type      String   // 'LARGE_WITHDRAWAL' | 'SALARY_RECEIVED' | 'BUDGET_EXCEEDED' | 'UPCOMING_BILL'
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model AutomationRule {
+  id            String   @id @default(uuid())
+  userId        String   // Owner (Appwrite ID)
+  triggerType   String   // 'BALANCE_BELOW' | 'SPENDING_EXCEEDS'
+  triggerValue  Float
+  actionType    String   // 'ALERT_INBOX' | 'AUTO_TRANSFER'
+  actionDetails String   // Specific configuration info
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}

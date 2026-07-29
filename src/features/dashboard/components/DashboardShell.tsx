@@ -7,6 +7,7 @@ import { TopNav } from './TopNav';
 interface DashboardShellProps {
   children: React.ReactNode;
   user: {
+    $id: string;
     name: string;
     email: string;
   } | null;
