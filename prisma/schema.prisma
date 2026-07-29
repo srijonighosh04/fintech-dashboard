@@ -206,3 +206,16 @@ model AutomationRule {
 
   @@index([userId])
 }
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  // Associated User (if authenticated)
+  action    String   // e.g., 'AUTH_LOGIN_SUCCESS', 'DWOLLA_TRANSFER_INITIATED'
+  details   String   // JSON metadata of the event
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+}

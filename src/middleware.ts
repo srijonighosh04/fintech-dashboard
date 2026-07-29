@@ -7,38 +7,96 @@ const AUTH_ROUTES = ['/login', '/signup', '/forgot-password'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Retrieve the session cookie
+
+  // 1. CSRF Protection Check for state-changing HTTP methods
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+    const origin = request.headers.get('origin');
+    const host = request.headers.get('host');
+    
+    if (origin && host) {
+      try {
+        const originUrl = new URL(origin);
+        // Compare origin host with requesting host name
+        if (originUrl.host !== host) {
+          return new NextResponse(
+            JSON.stringify({ error: 'CSRF verification failed: Origin mismatch.' }),
+            {
+              status: 403,
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+        }
+      } catch {
+        return new NextResponse(
+          JSON.stringify({ error: 'CSRF verification failed: Malformed Origin.' }),
+          {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    }
+  }
+
+  // 2. Retrieve the session cookie and process routing guards
   const session = request.cookies.get('appwrite-session');
   const isAuthenticated = !!session?.value;
 
-  // 1. Guard protected paths (e.g. /dashboard)
+  let response = NextResponse.next();
+
   if (pathname.startsWith(PROTECTED_ROUTE_PREFIX)) {
     if (!isAuthenticated) {
-      // Redirect unauthenticated user to login, preserving current path in query
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
+      response = NextResponse.redirect(loginUrl);
     }
-  }
-
-  // 2. Prevent authenticated users from visiting auth pages (login, signup, etc.)
-  if (AUTH_ROUTES.includes(pathname)) {
+  } else if (AUTH_ROUTES.includes(pathname)) {
     if (isAuthenticated) {
-      // Redirect authenticated user straight to dashboard
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      response = NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
 
-  return NextResponse.next();
+  // 3. Inject strict Security Headers (Equivalent to Helmet.js)
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' data: blob: https:;
+    font-src 'self' https://fonts.gstatic.com;
+    connect-src 'self' https://api.plaid.com https://api.dwolla.com https://cloud.appwrite.io ws: wss:;
+    frame-src 'self' https://cdn.plaid.com https://js.stripe.com;
+    media-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+  `.replace(/\s{2,}/g, ' ').trim();
+
+  response.headers.set('Content-Security-Policy', cspHeader);
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+  );
+
+  return response;
 }
 
-// Apply middleware matching to only auth pages and dashboard routes
+// Apply middleware checks globally across pages and APIs
 export const config = {
   matcher: [
-    '/login',
-    '/signup',
-    '/forgot-password',
-    '/dashboard/:path*',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api/ (handled within backend route policies)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
