@@ -195,7 +195,7 @@ model Notification {
 
 model AutomationRule {
   id            String   @id @default(uuid())
-  userId        String   // Owner (Appwrite ID)
+  userId          String   // Owner (Appwrite ID)
   triggerType   String   // 'BALANCE_BELOW' | 'SPENDING_EXCEEDS'
   triggerValue  Float
   actionType    String   // 'ALERT_INBOX' | 'AUTO_TRANSFER'
@@ -218,4 +218,20 @@ model AuditLog {
 
   @@index([userId])
   @@index([action])
+}
+
+model FraudCase {
+  id              String   @id @default(uuid())
+  userId          String
+  transactionId   String   @unique
+  riskScore       Int      // 0-100
+  confidenceScore Int      // 0-100
+  reasons         String   // JSON list of triggered reasons (e.g. ['LARGE_PURCHASE'])
+  explanation     String   @db.Text
+  status          String   @default("UNDER_REVIEW") // UNDER_REVIEW | APPROVED | CONFIRMED_FRAUD
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }

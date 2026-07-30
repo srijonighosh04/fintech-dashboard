@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency, formatDate } from '@/utils/format';
 import { Transaction } from '@/types';
+import prisma from '@/lib/prisma';
+import { FraudAlertBanner } from '@/features/fraud/components/FraudAlertBanner';
 
 // Mock Transactions data for visual completeness
 const mockTransactions: Transaction[] = [
@@ -28,6 +30,14 @@ export default async function DashboardPage() {
 
   // Retrieve linked banks and accounts from PostgreSQL
   const banks = await getConnectedAccountsAction(user.$id);
+
+  // Check for flagged active fraud cases under review
+  const flaggedCount = await prisma.fraudCase.count({
+    where: {
+      userId: user.$id,
+      status: 'UNDER_REVIEW',
+    },
+  });
 
   // Compute metrics from connected accounts
   let totalBalance = 0;
@@ -52,6 +62,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Fraud Detection warning Banner */}
+      <FraudAlertBanner flaggedCount={flaggedCount} />
+
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

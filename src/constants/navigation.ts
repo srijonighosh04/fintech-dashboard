@@ -1,7 +1,7 @@
 export interface NavItem {
   title: string;
   href: string;
-  iconName: 'LayoutDashboard' | 'CreditCard' | 'ArrowLeftRight' | 'History' | 'Settings' | 'Wallet' | 'BrainCircuit' | 'Cpu';
+  iconName: 'LayoutDashboard' | 'CreditCard' | 'ArrowLeftRight' | 'History' | 'Settings' | 'Wallet' | 'BrainCircuit' | 'Cpu' | 'Shield';
 }
 
 export const SIDEBAR_NAV_ITEMS: NavItem[] = [
@@ -12,33 +12,38 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
   },
   {
     title: 'Accounts',
-    href: '/dashboard', // Links directly to the overview where accounts card links reside
+    href: '/dashboard',
     iconName: 'CreditCard',
   },
   {
     title: 'Transfers',
-    href: '/transfers', // Fixed from /dashboard/transfers to prevent 404
+    href: '/transfers',
     iconName: 'ArrowLeftRight',
   },
   {
     title: 'Transactions',
-    href: '/transactions', // Fixed from /dashboard/transactions to prevent 404
+    href: '/transactions',
     iconName: 'History',
   },
   {
     title: 'Budgets',
-    href: '/budgets', // New budget planner page route
+    href: '/budgets',
     iconName: 'Wallet',
   },
   {
     title: 'AI Assistant',
-    href: '/assistant', // New AI financial assistant route page
+    href: '/assistant',
     iconName: 'BrainCircuit',
   },
   {
     title: 'Automation',
-    href: '/automation', // New automation controls & scanner route page
+    href: '/automation',
     iconName: 'Cpu',
+  },
+  {
+    title: 'Fraud Center',
+    href: '/dashboard/fraud', // New fraud analytics and queue route page
+    iconName: 'Shield',
   },
   {
     title: 'Settings',

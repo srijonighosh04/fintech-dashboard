@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ActionResponse } from '@/features/plaid/actions/plaidActions';
 import { processAutomationTriggers } from './automationActions';
+import { evaluateTransactionFraud } from '@/features/fraud/engine/detector';
 import { revalidatePath } from 'next/cache';
 
 const geminiApiKey = process.env.GEMINI_API_KEY || '';
@@ -161,6 +162,9 @@ export async function scanReceiptAction(userId: string, base64Image: string, fil
       result.category,
       result.merchant,
     );
+
+    // Run security evaluation triggers (Fraud Detection Engine)
+    await evaluateTransactionFraud(newTx.id);
 
     revalidatePath('/automation');
     revalidatePath('/transactions');
