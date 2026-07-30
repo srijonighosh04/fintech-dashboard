@@ -84,36 +84,36 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(0.12 0.015 240);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(0.15 0.015 240 / 65%);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+  --popover: oklch(0.15 0.015 240 / 85%);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+  --secondary: oklch(0.22 0.015 240 / 80%);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
+  --muted: oklch(0.22 0.015 240 / 70%);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --accent: oklch(0.22 0.015 240 / 80%);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.556 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
+  --sidebar: oklch(0.13 0.015 240 / 75%);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent: oklch(0.22 0.015 240 / 80%);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.556 0 0);
 }
 
@@ -123,7 +123,32 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-attachment: fixed;
   }
+  
+  /* Glassmorphism gradient backdrops for Dark Mode */
+  .dark body {
+    background-color: oklch(0.09 0.01 240);
+    background-image: 
+      radial-gradient(circle at 5% 5%, oklch(0.16 0.035 240 / 45%) 0%, transparent 60%),
+      radial-gradient(circle at 95% 95%, oklch(0.14 0.03 260 / 30%) 0%, transparent 65%),
+      radial-gradient(circle at 50% 50%, oklch(0.11 0.015 240 / 20%) 0%, transparent 80%);
+  }
+
+  /* Support standard glassmorphism blur defaults for cards & popovers */
+  .dark .bg-card\/60,
+  .dark .bg-card\/40,
+  .dark .bg-card\/25 {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  
+  .dark .bg-popover\/95,
+  .dark .bg-popover\/85 {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
   html {
     @apply font-sans;
   }
