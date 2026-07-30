@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database Service
+  db:
+    image: postgres:15-alpine
+    container_name: astrabank-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: astrabank
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d astrabank"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Redis Caching Service
+  redis:
+    image: redis:7-alpine
+    container_name: astrabank-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. Next.js Web Application Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: astrabank-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgrespassword@db:5432/astrabank?schema=public
+      - REDIS_URL=redis://redis:6379
+      - NEXT_PUBLIC_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+      - NEXT_PUBLIC_APPWRITE_PROJECT=placeholder-project
+      - APPWRITE_KEY=placeholder-key
+      - PLAID_CLIENT_ID=placeholder-plaid-id
+      - PLAID_SECRET=placeholder-plaid-secret
+      - GEMINI_API_KEY=placeholder-gemini-key
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:
