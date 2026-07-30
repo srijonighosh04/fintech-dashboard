@@ -5,6 +5,12 @@ import { ThemeProvider } from '@/components/shared/ThemeProvider';
 export const metadata: Metadata = {
   title: 'AstraBank - Modern Premium Banking Platform',
   description: 'Manage accounts, transfers, and track transactions with AstraBank.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'AstraBank',
+  },
 };
 
 export default function RootLayout({
@@ -27,6 +33,8 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
+        {/* Register client-side service worker */}
+        <script src="/sw-register.js" defer />
       </body>
     </html>
   );

@@ -14,6 +14,7 @@ import { formatCurrency, formatDate } from '@/utils/format';
 import { Transaction } from '@/types';
 import prisma from '@/lib/prisma';
 import { FraudAlertBanner } from '@/features/fraud/components/FraudAlertBanner';
+import { InvestmentWidget } from '@/features/dashboard/components/InvestmentWidget';
 
 // Mock Transactions data for visual completeness
 const mockTransactions: Transaction[] = [
@@ -100,6 +101,9 @@ export default async function DashboardPage() {
 
       {/* 3. Recharts Analytics Widgets */}
       <DashboardAnalytics />
+
+      {/* Investment portfolio allocations and trends tracker */}
+      <InvestmentWidget />
 
       {/* 4. Bank connections and specific account cards */}
       <div id="connected-accounts-section" className="space-y-4">

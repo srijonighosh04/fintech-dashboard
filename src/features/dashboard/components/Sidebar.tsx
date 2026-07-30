@@ -24,6 +24,15 @@ export function Sidebar({ user, className }: SidebarProps) {
     await logoutUser();
   };
 
+  const isAdmin = user?.email === 'admin@astrabank.com' || user?.email.endsWith('@astrabank.com');
+  const navItems = isAdmin
+    ? [
+        ...SIDEBAR_NAV_ITEMS.slice(0, SIDEBAR_NAV_ITEMS.length - 1),
+        { title: 'Admin Console', href: '/dashboard/admin', iconName: 'Shield' as const },
+        SIDEBAR_NAV_ITEMS[SIDEBAR_NAV_ITEMS.length - 1],
+      ]
+    : SIDEBAR_NAV_ITEMS;
+
   return (
     <aside
       className={cn(
@@ -45,7 +54,7 @@ export function Sidebar({ user, className }: SidebarProps) {
 
       {/* Navigation Links */}
       <nav className="flex-1 space-y-1.5 px-4 py-6">
-        {SIDEBAR_NAV_ITEMS.map((item: NavItem) => {
+        {navItems.map((item: NavItem) => {
           const Icon = (Icons[item.iconName] as React.ComponentType<{ className?: string }>) || Icons.HelpCircle;
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 

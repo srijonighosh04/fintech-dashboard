@@ -1,12 +1,25 @@
+const EXCHANGE_RATES = {
+  USD: 1.0,
+  EUR: 0.915,
+  GBP: 0.785,
+};
+
 /**
- * Formats a numeric value into a USD currency string.
+ * Formats a numeric value into a specific currency string with exchange rate conversion.
  */
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+export function formatCurrency(
+  amount: number,
+  currency: 'USD' | 'EUR' | 'GBP' = 'USD'
+): string {
+  const convertedAmount = amount * (EXCHANGE_RATES[currency] || 1.0);
+  
+  const locale = currency === 'USD' ? 'en-US' : currency === 'EUR' ? 'de-DE' : 'en-GB';
+
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'USD',
+    currency: currency,
     minimumFractionDigits: 2,
-  }).format(amount);
+  }).format(convertedAmount);
 }
 
 /**
