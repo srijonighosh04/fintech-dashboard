@@ -60,7 +60,7 @@ export function Sidebar({ user, className }: SidebarProps) {
 
           return (
             <Link
-              key={item.href}
+              key={item.title}
               href={item.href}
               className={cn(
                 'group flex items-center gap-3.5 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-accent/80 hover:text-accent-foreground',
